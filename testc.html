@@ -1,0 +1,232 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#11100f"><title>AURIA — Essayage virtuel</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#11100f;color:#f8f3ed;font:15px system-ui,sans-serif}.app{max-width:540px;margin:auto;padding-bottom:80px}header{padding:22px;display:flex;justify-content:space-between;align-items:center}.logo{font:26px Georgia;letter-spacing:.18em}.logo span{color:#d9a99a}.muted{color:#b4a9a1;font-size:12px;line-height:1.5}.intro{padding:12px 22px}.eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#d9a99a;font-weight:800}h1{font:42px/1 Georgia;margin:12px 0}h2{font:25px Georgia}.stage{margin:0 14px;border-radius:22px;overflow:hidden;border:1px solid #ffffff22;background:#211c19}.camera{height:480px;position:relative;background:radial-gradient(ellipse,#61493f,#171513)}video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}video{transform:scaleX(-1)}.placeholder{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:30px;background:radial-gradient(ellipse,#61493f,#171513)}.placeholder.hidden{display:none}.placeholder b{font:70px Georgia;color:#d9a99a}.placeholder p{font-size:12px;line-height:1.6;color:#ddd}.controls{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{padding:14px;border:0;border-radius:13px;background:#d9a99a;color:#211613;font-weight:800}.btn.alt{background:#302824;color:#fff;border:1px solid #ffffff22}.section{padding:0 20px;margin:24px 0}.head{display:flex;justify-content:space-between;align-items:end}.filters{display:flex;gap:7px;overflow:auto;padding:12px 0}.chip{white-space:nowrap;border:1px solid #ffffff24;background:transparent;color:#b4a9a1;padding:9px 13px;border-radius:99px}.chip.active{background:#d9a99a;color:#211613}.products{display:grid;grid-template-columns:1fr 1fr;gap:10px}.product{border:1px solid #ffffff20;background:#1b1918;color:#fff;border-radius:16px;padding:0;overflow:hidden;text-align:left}.product.selected{border:2px solid #d9a99a}.art{height:140px;display:grid;place-items:center;background:radial-gradient(ellipse,#49382e,#211d1a)}.art svg{width:100px;height:115px;filter:drop-shadow(0 5px 8px #0008)}.meta{padding:11px}.meta strong{font:17px Georgia;display:block}.meta small{font-size:10px;color:#b4a9a1}.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tool{padding:13px;border:1px solid #ffffff20;background:#1b1918;border-radius:14px}.tool label{font-size:11px;color:#b4a9a1;display:block;margin-bottom:8px}.tool input{width:100%;accent-color:#d9a99a}.notice{padding:14px;border:1px solid #d9a99a55;border-radius:13px;color:#d7c3b7;font-size:11px;line-height:1.6}.notice strong{color:#f3d8ca}.notice span{display:block;margin-top:7px;color:#d9a99a}.btn:disabled{opacity:.45}.result{display:none}.result img{width:100%;border-radius:15px}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(540px,100%);display:grid;grid-template-columns:repeat(3,1fr);background:#11100fee;padding:14px;border-top:1px solid #ffffff22}.nav button{background:none;border:0;color:#b4a9a1}.nav button.active{color:#d9a99a}.toast{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#d9a99a;color:#211613;padding:12px 16px;border-radius:99px;font-weight:800;font-size:12px}
+</style><script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+</head><body><div class="app"><header><div><div class="logo">AURIA<span>✧</span></div><div class="muted">ESSAYEZ · EXPLOREZ · RAYONNEZ</div></div><button id="fav" class="btn alt">♡</button></header>
+<section id="try"><div class="intro"><div class="eyebrow">Essayage virtuel · IA</div><h1>Une nouvelle<br>façon de choisir.</h1><p class="muted">Essayez des modèles sur votre aperçu caméra. Ajustez leur position et gardez votre coup de cœur.</p></div>
+<div class="stage"><div class="camera" id="camera"><video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas><div class="placeholder" id="placeholder"><b>A</b><h2>Votre miroir virtuel</h2><p>Activez la caméra, placez votre visage dans le cadre et sélectionnez une paire.</p></div></div><div class="controls">
+<button class="btn" id="camBtn">Activer la caméra ↗</button>
+<button class="btn alt" id="capture" disabled>Capturer</button>
+<button class="btn alt" id="autoBtn" disabled>✦ Placement IA</button>
+<button class="btn alt" id="debugBtn" disabled>Repères</button>
+</div></div>
+<div class="section"><div class="head"><div><div class="eyebrow">Personnalisation</div><h2>Ajustez l’aperçu</h2></div></div><div class="tools"><div class="tool"><label>Position verticale <span id="yv">50%</span></label><input id="y" type="range" min="15" max="85" value="50"></div><div class="tool"><label>Position horizontale <span id="xv">50%</span></label><input id="x" type="range" min="15" max="85" value="50"></div><div class="tool"><label>Taille <span id="sv">100%</span></label><input id="size" type="range" min="45" max="180" value="100"></div><div class="tool"><label><input id="both" type="checkbox" checked> Afficher les deux côtés</label></div></div></div>
+<div class="section"><div class="head"><div><div class="eyebrow">Catalogue</div><h2>Vos boucles</h2></div></div><div id="filters" class="filters"></div><div id="products" class="products"></div></div>
+<div class="section"><div class="eyebrow">Votre résultat</div><h2>Gardez le coup de cœur</h2><div id="result" class="result"><img id="shot"><p class="muted">Capture locale de votre aperçu.</p></div><div class="notice"><strong>Essayage IA</strong><br>
+Le visage est analysé localement dans votre navigateur avec MediaPipe Face Mesh. Le modèle estime automatiquement la zone des oreilles et suit les mouvements de la tête. Les images caméra ne sont pas envoyées à un serveur par cette page.
+<span id="aiStatus">Modèle prêt. Activez la caméra.</span></div></div></section>
+<section id="favorites" style="display:none"><div class="intro"><div class="eyebrow">Sélection</div><h1>Vos favoris.</h1></div><div class="section"><div id="favProducts" class="products"></div><p id="empty" class="muted">Touchez le cœur d’un modèle pour le retrouver ici.</p></div></section>
+<section id="about" style="display:none"><div class="intro"><div class="eyebrow">AURIA</div><h1>Le détail fait<br>la différence.</h1><p class="muted">Expérience de prévisualisation de boucles d’oreilles. La qualité du rendu dépend de l’angle caméra et des réglages manuels.</p></div></section>
+<nav class="nav"><button class="active" data-page="try">◎<br>Essayer</button><button data-page="favorites">♡<br>Favoris</button><button data-page="about">✧<br>À propos</button></nav></div><div class="toast" id="toast"></div>
+<script>
+const data=[['Éclat','Pendantes','drop','#e7c47c'],['Luna','Créoles','hoop','#e2bd78'],['Perle','Puces','pearl','#f4eee1'],['Cœur','Fantaisie','heart','#e6c77d'],['Étoile','Pendantes','star','#e2bf7b'],['Auré','Pendantes','gem','#63a78b'],['Essentielle','Créoles','mini','#e5c17e'],['Papillon','Fantaisie','butterfly','#e9a8b7']].map((a,i)=>({id:i,name:a[0],cat:a[1],type:a[2],color:a[3]}));
+let selected=data[0],cat='Tout',stream=null,favs=JSON.parse(localStorage.getItem('auria_favs')||'[]');
+const $=id=>document.getElementById(id);
+const video=$('video');
+const canvas=$('overlay');
+const ctx=canvas.getContext('2d');
+function svg(m){let c=m.color,s='';if(m.type==='drop')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 25C18 52 31 85 50 101C69 85 82 52 50 25Z" fill="${c}"/><path d="M50 40L42 64L50 78L58 64Z" fill="#fff1ce"/>`;if(m.type==='hoop'||m.type==='mini')s=`<circle cx="50" cy="20" r="6" fill="${c}"/><ellipse cx="50" cy="63" rx="${m.type==='hoop'?28:17}" ry="${m.type==='hoop'?39:25}" fill="none" stroke="${c}" stroke-width="5"/>`;if(m.type==='pearl')s=`<circle cx="50" cy="22" r="6" fill="${c}"/><circle cx="50" cy="63" r="29" fill="${c}" stroke="#fff" stroke-width="2"/><circle cx="40" cy="53" r="8" fill="#fff" opacity=".5"/>`;if(m.type==='heart')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 95C-2 58 25 25 50 50C75 25 102 58 50 95Z" fill="${c}" stroke="#fff0c9" stroke-width="2"/>`;if(m.type==='star')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 30L60 53L85 55L66 72L72 96L50 82L28 96L34 72L15 55L40 53Z" fill="${c}"/>`;if(m.type==='gem')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 28C20 35 30 67 50 94C70 67 80 35 50 28Z" fill="#438f72" stroke="${c}" stroke-width="4"/><path d="M50 34V85" stroke="#c6f0d6" stroke-width="3"/>`;if(m.type==='butterfly')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><ellipse cx="35" cy="57" rx="16" ry="24" fill="${c}"/><ellipse cx="65" cy="57" rx="16" ry="24" fill="${c}"/><ellipse cx="39" cy="79" rx="10" ry="15" fill="${c}"/><ellipse cx="61" cy="79" rx="10" ry="15" fill="${c}"/>`;return `<svg viewBox="0 0 100 120">${s}</svg>`}
+function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2000)}
+function render(){let f=$('filters');f.innerHTML='';['Tout','Créoles','Pendantes','Puces','Fantaisie'].forEach(c=>{let b=document.createElement('button');b.className='chip'+(cat===c?' active':'');b.textContent=c;b.onclick=()=>{cat=c;render()};f.append(b)});let root=$('products');root.innerHTML='';data.filter(m=>cat==='Tout'||m.cat===cat).forEach(m=>{let b=document.createElement('button');b.className='product'+(selected.id===m.id?' selected':'');b.innerHTML=`<div class="art">${svg(m)}</div><div class="meta"><strong>${m.name}</strong><small>${m.cat}</small></div>`;b.onclick=()=>{selected=m;render();draw()};root.append(b)});let favroot=$('favProducts');favroot.innerHTML='';let fs=data.filter(m=>favs.includes(m.id));$('empty').style.display=fs.length?'none':'block';fs.forEach(m=>{let b=document.createElement('button');b.className='product';b.innerHTML=`<div class="art">${svg(m)}</div><div class="meta"><strong>${m.name}</strong><small>${m.cat}</small></div>`;b.onclick=()=>{selected=m;go('try');render();draw()};favroot.append(b)})}
+
+let faceLandmarks=null, aiEnabled=false, debugEnabled=false, faceMesh=null, faceLoop=false;
+let smoothL=null,smoothR=null,smoothScale=null;
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+function drawE(c,x,y,scale){
+  c.save();c.translate(x,y);c.scale(scale,scale);
+  let m=selected,g=m.color;c.lineWidth=3;c.strokeStyle=g;c.fillStyle=g;c.shadowColor='#000a';c.shadowBlur=5;
+  c.beginPath();c.arc(0,0,3,0,7);c.fill();
+  if(m.type==='drop'){c.beginPath();c.moveTo(0,4);c.bezierCurveTo(-15,18,-10,31,0,39);c.bezierCurveTo(10,31,15,18,0,4);c.fill();c.fillStyle='#fff1ce';c.beginPath();c.ellipse(-2,23,3,7,0,0,7);c.fill()}
+  else if(m.type==='hoop'||m.type==='mini'){c.beginPath();c.ellipse(0,18,m.type==='hoop'?14:9,m.type==='hoop'?20:12,0,0,7);c.stroke()}
+  else if(m.type==='pearl'){c.beginPath();c.arc(0,16,10,0,7);c.fillStyle='#f5eee2';c.fill();c.stroke()}
+  else if(m.type==='heart'){c.beginPath();c.moveTo(0,34);c.bezierCurveTo(-30,14,-11,-1,0,12);c.bezierCurveTo(11,-1,30,14,0,34);c.fill()}
+  else if(m.type==='star'){c.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,r=i%2?7:17;c.lineTo(Math.cos(a)*r,17+Math.sin(a)*r)}c.closePath();c.fill()}
+  else if(m.type==='gem'){c.beginPath();c.moveTo(0,4);c.bezierCurveTo(-20,9,-10,27,0,36);c.bezierCurveTo(10,27,20,9,0,4);c.fillStyle='#438f72';c.fill();c.stroke()}
+  else{c.beginPath();c.ellipse(-7,15,8,12,-.6,0,7);c.ellipse(7,15,8,12,.6,0,7);c.ellipse(-6,27,5,8,.6,0,7);c.ellipse(6,27,5,8,-.6,0,7);c.fill()}
+  c.restore();
+}
+
+function getAnchors(lm){
+  if(!lm || lm.length<455)return null;
+
+  // Face Mesh ne fournit pas de landmark dédié au lobe de l'oreille.
+  // On estime donc chaque lobe à partir de plusieurs repères :
+  // - côté du visage (234 / 454)
+  // - œil correspondant (33/159 et 263/386)
+  // - coin de bouche correspondant (61 / 291)
+  // Cela évite d'utiliser 234/454 comme position finale du bijou.
+  const leftSide=lm[234], rightSide=lm[454];
+  const leftEye={x:(lm[33].x+lm[159].x)/2,y:(lm[33].y+lm[159].y)/2};
+  const rightEye={x:(lm[263].x+lm[386].x)/2,y:(lm[263].y+lm[386].y)/2};
+  const leftMouth=lm[61], rightMouth=lm[291];
+  const top=lm[10], chin=lm[152];
+  const faceW=distance(leftSide,rightSide);
+  const faceH=distance(top,chin);
+  if(!faceW || !faceH)return null;
+
+  // Position verticale du lobe : entre la ligne des yeux et la bouche,
+  // légèrement sous l'œil. Chaque côté garde sa propre hauteur pour suivre
+  // l'inclinaison de la tête.
+  const leftRawY=leftEye.y+(leftMouth.y-leftEye.y)*.30;
+  const rightRawY=rightEye.y+(rightMouth.y-rightEye.y)*.30;
+
+  // Le flux vidéo est affiché en miroir. Conversion explicite des X.
+  // On part du contour du visage puis on revient légèrement vers l'intérieur,
+  // car le point 234/454 est sur la joue et non sur le lobe.
+  const inward=faceW*.025;
+  const viewerLeft={
+    x:clamp(1-(rightSide.x-inward),.02,.98),
+    y:clamp(rightRawY,.02,.98)
+  };
+  const viewerRight={
+    x:clamp(1-(leftSide.x+inward),.02,.98),
+    y:clamp(leftRawY,.02,.98)
+  };
+
+  // Lissage indépendant des deux côtés.
+  const a=.28;
+  smoothL=smoothL
+    ? {x:smoothL.x*(1-a)+viewerLeft.x*a,y:smoothL.y*(1-a)+viewerLeft.y*a}
+    : {...viewerLeft};
+  smoothR=smoothR
+    ? {x:smoothR.x*(1-a)+viewerRight.x*a,y:smoothR.y*(1-a)+viewerRight.y*a}
+    : {...viewerRight};
+  smoothScale=smoothScale?smoothScale*(1-a)+faceW*a:faceW;
+
+  return {L:smoothL,R:smoothR,scale:smoothScale,debug:{leftSide,rightSide,leftEye,rightEye,leftMouth,rightMouth}};
+}
+
+function earringScale(a,w,h){
+  // MediaPipe donne une échelle normalisée ; conversion en pixels pour le canvas.
+  return a.scale*Math.min(w,h)*.0042*(+$('size').value/100);
+}
+
+function drawDebug(ctx,lm,anchors){
+  if(!debugEnabled||!lm)return;
+  const w=canvas.width,h=canvas.height;
+  ctx.save();
+  const pts=[
+    [33,lm[33]],[159,lm[159]],[61,lm[61]],
+    [263,lm[263]],[386,lm[386]],[291,lm[291]],
+    [234,lm[234]],[454,lm[454]]
+  ];
+  ctx.fillStyle='#63e6b5';
+  pts.forEach(([i,p])=>{
+    ctx.beginPath();ctx.arc(p.x*w,p.y*h,4*devicePixelRatio,0,Math.PI*2);ctx.fill();
+  });
+  if(anchors){
+    ctx.strokeStyle='#fff';ctx.lineWidth=2*devicePixelRatio;
+    [anchors.L,anchors.R].forEach(p=>{
+      const x=p.x*w,y=p.y*h;
+      ctx.beginPath();ctx.moveTo(x-9*devicePixelRatio,y);ctx.lineTo(x+9*devicePixelRatio,y);ctx.moveTo(x,y-9*devicePixelRatio);ctx.lineTo(x,y+9*devicePixelRatio);ctx.stroke();
+      ctx.beginPath();ctx.arc(x,y,5*devicePixelRatio,0,Math.PI*2);ctx.stroke();
+    });
+  }
+  ctx.fillStyle='#fff';ctx.font=`${12*devicePixelRatio}px system-ui`;ctx.fillText('repères oreille',16,24*devicePixelRatio);
+  ctx.restore();
+}
+
+function draw(){
+  const r=canvas.getBoundingClientRect();
+  const w=canvas.width=Math.max(1,Math.round(r.width*devicePixelRatio));
+  const h=canvas.height=Math.max(1,Math.round(r.height*devicePixelRatio));
+  ctx.clearRect(0,0,w,h);if(!stream)return;
+
+  if(aiEnabled&&faceLandmarks){
+    const a=getAnchors(faceLandmarks);
+    if(a){
+      const s=earringScale(a,w,h);
+      drawE(ctx,a.R.x*w,a.R.y*h,s);
+      if($('both').checked)drawE(ctx,a.L.x*w,a.L.y*h,s);
+      drawDebug(ctx,faceLandmarks,a);return;
+    }
+  }
+  const x=+$('x').value/100*w,y=+$('y').value/100*h,s=+$('size').value/100*devicePixelRatio;
+  drawE(ctx,w-x,y,s);if($('both').checked)drawE(ctx,x,y,s);
+}
+
+async function initFaceMesh(){
+  if(faceMesh)return true;
+  if(typeof FaceMesh==='undefined'){
+    setAIStatus('IA indisponible : Face Mesh n’est pas chargé. Ouvrez la page sur Internet (HTTPS).');
+    return false;
+  }
+  try{
+    faceMesh=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+    faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+    faceMesh.onResults(res=>{
+      faceLandmarks=(res.multiFaceLandmarks&&res.multiFaceLandmarks.length)?res.multiFaceLandmarks[0]:null;
+      if(faceLandmarks){
+        aiEnabled=true;
+        setAIStatus('✓ Visage détecté — boucles placées automatiquement');
+      }else{
+        setAIStatus('Recherche du visage… placez votre visage entièrement dans le cadre');
+      }
+      draw();
+    });
+    if(!faceLoop){
+      faceLoop=true;
+      const loop=async()=>{
+        if(!faceLoop)return;
+        if(stream&&video.readyState>=2&&video.videoWidth>0){
+          try{await faceMesh.send({image:video});}
+          catch(e){setAIStatus('Erreur de détection IA : '+(e.message||'modèle indisponible'));}
+        }
+        requestAnimationFrame(loop);
+      };
+      loop();
+    }
+    return true;
+  }catch(e){
+    faceMesh=null;
+    setAIStatus('Impossible d’initialiser l’IA : '+(e.message||'erreur inconnue'));
+    return false;
+  }
+}
+
+function setAIStatus(t){const e=$('aiStatus');if(e)e.textContent=t}
+
+async function camera(){
+  try{
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;faceLoop=false;faceLandmarks=null;aiEnabled=false;
+      video.srcObject=null;smoothL=smoothR=null;smoothScale=null;$('placeholder').classList.remove('hidden');$('camBtn').textContent='Activer la caméra ↗';
+      $('capture').disabled=true;$('autoBtn').disabled=true;$('debugBtn').disabled=true;ctx.clearRect(0,0,canvas.width,canvas.height);setAIStatus('Caméra arrêtée.');return}
+    if(!navigator.mediaDevices?.getUserMedia)throw Error('Caméra indisponible : utilisez HTTPS ou localhost.');
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    video.srcObject=stream;await video.play();$('placeholder').classList.add('hidden');$('camBtn').textContent='Désactiver la caméra';
+    $('capture').disabled=false;$('autoBtn').disabled=false;$('debugBtn').disabled=false;setAIStatus('Chargement du modèle IA…');aiEnabled=true;$('autoBtn').textContent='✦ IA active';const ok=await initFaceMesh();if(!ok)aiEnabled=false;draw();toast(ok?'Caméra + IA activées':'Caméra activée, IA indisponible')
+  }catch(e){toast(e.message||'Autorisation caméra refusée');setAIStatus('Impossible d’activer la caméra.')}
+}
+
+$('camBtn').onclick=camera;
+$('autoBtn').onclick=async()=>{aiEnabled=true;$('autoBtn').textContent='✦ IA active';setAIStatus('Chargement / recherche du visage…');if(!faceMesh)await initFaceMesh();draw()};
+$('debugBtn').onclick=()=>{debugEnabled=!debugEnabled;$('debugBtn').textContent=debugEnabled?'Masquer repères':'Repères';draw()};
+
+['x','y','size','both'].forEach(id=>$(id).addEventListener('input',()=>{
+  $('xv').textContent=$('x').value+'%';$('yv').textContent=$('y').value+'%';$('sv').textContent=$('size').value+'%';
+  if(id==='x'||id==='y')aiEnabled=false;draw()
+}));
+window.addEventListener('resize',draw);
+
+$('capture').onclick=()=>{
+  if(!stream)return;
+  const out=document.createElement('canvas'),w=video.videoWidth,h=video.videoHeight;out.width=w;out.height=h;const c=out.getContext('2d');
+  c.save();c.translate(w,0);c.scale(-1,1);c.drawImage(video,0,0,w,h);c.restore();
+  if(aiEnabled&&faceLandmarks){
+    const a=getAnchors(faceLandmarks);
+    if(a){const s=earringScale(a,w,h);drawE(c,a.R.x*w,a.R.y*h,s);if($('both').checked)drawE(c,a.L.x*w,a.L.y*h,s)}
+  }else{
+    const px=+$('x').value/100*w,py=+$('y').value/100*h,s=+$('size').value/100*Math.min(w/canvas.clientWidth,h/canvas.clientHeight);
+    drawE(c,w-px,py,s);if($('both').checked)drawE(c,px,py,s)
+  }
+  $('shot').src=out.toDataURL('image/png');$('result').style.display='block';$('result').scrollIntoView({behavior:'smooth'});toast('Capture réalisée')
+};
+
+$('fav').onclick=()=>{favs=favs.includes(selected.id)?favs.filter(x=>x!==selected.id):[...favs,selected.id];localStorage.setItem('auria_favs',JSON.stringify(favs));$('fav').textContent=favs.includes(selected.id)?'♥':'♡';render();toast(favs.includes(selected.id)?'Ajouté aux favoris':'Retiré des favoris')};
+function go(id){['try','favorites','about'].forEach(x=>$(x).style.display=x===id?'block':'none');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));if(id==='favorites')render();window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>go(b.dataset.page));render();
+</script></body></html>
