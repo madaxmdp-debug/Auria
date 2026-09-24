@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#11100f">
+<title>AURIA — Essayage virtuel</title>
+<style>
+:root{--bg:#11100f;--panel:#1b1817;--panel2:#211c19;--line:#ffffff18;--gold:#d9a99a;--gold2:#f0cbbd;--muted:#b4a9a1;--white:#f8f3ed}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--white);font:15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{max-width:560px;margin:auto;padding:0 0 calc(100px + env(safe-area-inset-bottom))}
+header{padding:20px 20px 12px;display:flex;justify-content:space-between;align-items:center}
+.logo{font:26px Georgia,serif;letter-spacing:.18em}.logo span{color:var(--gold)}
+.muted{color:var(--muted);font-size:12px;line-height:1.5}
+.top-actions{display:flex;gap:8px}.icon-btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#211e1c;color:var(--white)}
+.page{display:none}.page.active{display:block}
+.intro{padding:14px 20px 10px}.eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:800}
+h1{font:42px/1 Georgia,serif;margin:10px 0}h2{font:25px Georgia,serif;margin:8px 0}
+.section{padding:0 20px;margin:22px 0}.head{display:flex;justify-content:space-between;align-items:end;gap:12px}
+.filters{display:flex;gap:7px;overflow:auto;padding:12px 0;scrollbar-width:none}.filters::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;border:1px solid var(--line);background:transparent;color:var(--muted);padding:9px 13px;border-radius:99px}.chip.active{background:var(--gold);color:#211613;border-color:var(--gold)}
+.products{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.product{position:relative;border:1px solid var(--line);background:var(--panel);color:#fff;border-radius:16px;padding:0;overflow:hidden;text-align:left;transition:.2s}
+.product.selected{border:1px solid var(--gold);box-shadow:0 0 0 1px #d9a99a33}
+.art{height:140px;display:grid;place-items:center;background:radial-gradient(ellipse,#49382e,#211d1a)}.art svg{width:100px;height:115px;filter:drop-shadow(0 5px 8px #0008)}
+.meta{padding:11px}.meta strong{font:17px Georgia,serif;display:block}.meta small{font-size:10px;color:var(--muted)}
+.product-heart{position:absolute;right:8px;top:8px;width:32px;height:32px;border-radius:50%;border:1px solid #ffffff25;background:#11100fbf;color:white}
+.btn{padding:13px 15px;border:0;border-radius:13px;background:var(--gold);color:#211613;font-weight:800}.btn.alt{background:#302824;color:#fff;border:1px solid #ffffff20}.btn.small{padding:9px 12px;font-size:11px}.btn.full{width:100%}
+.camera-wrap{padding:0 12px}.stage{border-radius:25px;overflow:hidden;border:1px solid #ffffff22;background:#211c19;box-shadow:0 18px 45px #0008}
+.camera{height:500px;position:relative;background:radial-gradient(ellipse,#61493f,#171513)}
+video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}video{transform:scaleX(-1)}
+.camera-top{position:absolute;z-index:4;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.pill{padding:8px 11px;border-radius:99px;background:#11100fb8;border:1px solid #ffffff20;backdrop-filter:blur(12px);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.pill.ai{color:#e8c8bc}.pill.live{color:#bde4c9}
+.placeholder{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:30px;background:radial-gradient(ellipse,#61493f,#171513);z-index:3}.placeholder.hidden{display:none}.placeholder b{font:70px Georgia;color:var(--gold)}.placeholder p{font-size:12px;line-height:1.6;color:#ddd;max-width:280px}
+.camera-controls{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#171412}
+.control-main{grid-column:span 2}
+.camera-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.camera-tools .btn{background:#2d2724}
+.status{padding:12px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);background:#171412}.status strong{color:var(--gold2)}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tool{padding:13px;border:1px solid var(--line);background:var(--panel);border-radius:14px}.tool label{font-size:11px;color:var(--muted);display:block;margin-bottom:8px}.tool input[type=range]{width:100%;accent-color:var(--gold)}
+.notice{padding:14px;border:1px solid #d9a99a55;border-radius:14px;color:#d7c3b7;font-size:11px;line-height:1.6;background:#191514}.notice strong{color:#f3d8ca}.notice span{display:block;margin-top:7px;color:var(--gold)}
+.result-card{margin:20px;display:none}.capture-frame{position:relative;border-radius:22px;overflow:hidden;border:1px solid #ffffff22;background:#191514;box-shadow:0 18px 50px #0008}.capture-frame img{display:block;width:100%;height:auto}.capture-overlay{position:absolute;left:14px;right:14px;bottom:14px;padding:15px 16px;border:1px solid #ffffff30;border-radius:17px;background:linear-gradient(135deg,#151210e8,#3a2924dd);backdrop-filter:blur(15px);box-shadow:0 12px 30px #0007}.capture-brand{font-size:9px;letter-spacing:.25em;color:var(--gold);text-transform:uppercase}.capture-name{font:24px Georgia,serif;margin:5px 0 2px}.capture-sub{font-size:10px;color:#d5cbc6}.capture-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.capture-list{display:grid;gap:12px}.saved-shot{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}.saved-shot img{display:block;width:100%}.saved-shot-info{padding:11px}.saved-shot-info strong{font:17px Georgia,serif}.saved-shot-info small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+
+.quick-picker{display:none;position:fixed;z-index:55;inset:0;background:#0009;backdrop-filter:blur(10px);padding:18px;align-items:end;justify-content:center}.quick-picker.show{display:flex}.quick-card{width:min(540px,100%);max-height:82vh;overflow:auto;background:#1b1817;border:1px solid #ffffff20;border-radius:26px 26px 18px 18px;padding:18px;box-shadow:0 25px 80px #000}.quick-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.quick-head button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#302824;color:#fff}.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick-item{border:1px solid var(--line);background:#211d1b;color:#fff;border-radius:15px;padding:0;overflow:hidden;text-align:left}.quick-item.active{border-color:var(--gold);box-shadow:0 0 0 1px #d9a99a33}.quick-item .art{height:110px}.quick-item .meta{padding:9px}.capture-mini-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.saved-shot-info{padding:12px}.saved-shot-info strong{font:17px Georgia,serif}.saved-shot-info small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.saved-shot-info .btn{margin-top:9px}.camera-controls .control-main{grid-column:span 2}.camera-controls{grid-template-columns:1.25fr .75fr}.camera-controls .btn{min-height:48px}.camera-controls #cameraCatalogBtn{grid-column:span 2;background:#26201d}.status{display:flex;align-items:center;justify-content:space-between;gap:12px}.status .status-right{font-size:10px;color:var(--gold)}
+
+.library-tabs{display:flex;gap:8px;padding:0 20px 14px}.library-tab{flex:1;padding:10px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--muted)}.library-tab.active{background:var(--gold);color:#211613}
+.empty{padding:28px 16px;text-align:center;border:1px dashed #ffffff20;border-radius:18px;color:var(--muted);font-size:12px}
+.bottom-nav{position:fixed;z-index:30;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,100%);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;background:#11100ff2;border-top:1px solid #ffffff18;backdrop-filter:blur(18px)}
+.nav-btn{border:0;background:transparent;color:#887f79;padding:8px 4px;border-radius:14px;font-size:10px;letter-spacing:.04em}.nav-btn .nav-icon{font-size:21px;line-height:1.1;margin-bottom:4px}.nav-btn.active{color:var(--gold);background:#d9a99a0d}
+.toast{display:none;position:fixed;z-index:50;bottom:95px;left:50%;transform:translateX(-50%);background:var(--gold);color:#211613;padding:12px 16px;border-radius:99px;font-weight:800;font-size:12px;box-shadow:0 12px 35px #0008}
+.modal{display:none;position:fixed;z-index:60;inset:0;background:#0009;backdrop-filter:blur(10px);padding:20px;align-items:end;justify-content:center}.modal.show{display:flex}.modal-card{width:min(520px,100%);max-height:88vh;overflow:auto;background:#1b1817;border:1px solid #ffffff20;border-radius:24px;padding:18px;box-shadow:0 25px 80px #000}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head button{border:1px solid var(--line);background:#302824;color:#fff;border-radius:50%;width:36px;height:36px}@media(max-width:390px){h1{font-size:36px}.camera{height:455px}.tools{grid-template-columns:1fr}.products{gap:8px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><div class="logo">AURIA<span>✧</span></div><div class="muted">ESSAYEZ · EXPLOREZ · RAYONNEZ</div></div>
+  <div class="top-actions"><button id="headerFav" class="icon-btn" aria-label="Favoris">♡</button></div>
+</header>
+
+<section id="catalogPage" class="page">
+  <div class="intro"><div class="eyebrow">Collection AURIA</div><h1>Le bijou<br>qui vous ressemble.</h1><p class="muted">Explorez les modèles, sélectionnez vos favoris et essayez-les directement sur votre visage.</p></div>
+  <div class="section">
+    <div class="head"><div><div class="eyebrow">Catalogue</div><h2>Vos boucles</h2></div><span id="catalogCount" class="muted"></span></div>
+    <div id="filters" class="filters"></div><div id="products" class="products"></div>
+  </div>
+</section>
+
+<section id="cameraPage" class="page active">
+  <div class="intro"><div class="eyebrow">Essayage virtuel · IA</div><h1>Une nouvelle<br>façon de choisir.</h1><p class="muted">Placez votre visage dans le cadre. AURIA suit votre tête et positionne automatiquement les boucles.</p></div>
+  <div class="camera-wrap">
+    <div class="stage">
+      <div class="camera" id="camera">
+        <video id="video" autoplay playsinline muted></video><canvas id="overlay"></canvas>
+        <div class="camera-top"><span id="aiPill" class="pill ai">✦ IA prête</span><span id="livePill" class="pill live" style="display:none">● LIVE</span></div>
+        <div class="placeholder" id="placeholder"><b>A</b><h2>Votre miroir virtuel</h2><p>Activez la caméra et placez votre visage dans le cadre. AURIA s’occupe automatiquement du placement.</p></div>
+      </div>
+      <div class="camera-controls">
+        <button class="btn control-main" id="camBtn">Activer la caméra ↗</button>
+        <button class="btn alt" id="capture" disabled>Capturer</button>
+        <button class="btn alt" id="cameraCatalogBtn">Choisir un bijou</button>
+      </div>
+      <div class="status"><span><strong id="selectedStatus">Éclat</strong> · <span id="aiStatus">Modèle prêt. Activez la caméra.</span></span><span class="status-right">PLACEMENT AUTOMATIQUE</span></div>
+    </div>
+  </div>
+
+  </div>
+  <div class="section"><div class="notice"><strong>Essayage IA</strong><br>Le visage est analysé localement dans votre navigateur avec MediaPipe Face Mesh. AURIA ajuste automatiquement le placement pendant vos mouvements. Les images caméra ne sont pas envoyées à un serveur par cette page.<span id="noticeStatus">Face Mesh prêt.</span></div></div>
+
+  <div id="resultCard" class="result-card">
+    <div class="eyebrow">Votre capture</div><h2>Un souvenir à garder.</h2>
+    <div class="capture-frame">
+      <img id="shot" alt="Capture AURIA">
+      <div class="capture-overlay">
+        <div class="capture-brand">AURIA · ESSAYAGE VIRTUEL</div>
+        <div id="captureName" class="capture-name">Éclat</div>
+        <div id="captureSub" class="capture-sub">Votre sélection · aperçu virtuel</div>
+        <div class="capture-actions"><button id="saveCapture" class="btn small">Enregistrer</button><button id="shareCapture" class="btn alt small">Partager</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="libraryPage" class="page">
+  <div class="intro"><div class="eyebrow">Votre espace</div><h1>Vos sélections.</h1><p class="muted">Retrouvez vos bijoux favoris et les captures réalisées pendant vos essayages.</p></div>
+  <div class="library-tabs"><button class="library-tab active" data-library="fav">♡ Favoris</button><button class="library-tab" data-library="shots">▣ Captures</button></div>
+  <div id="favPanel" class="section"><div id="favProducts" class="products"></div><div id="emptyFav" class="empty">Aucun favori pour le moment.<br>Ajoutez un cœur depuis le catalogue.</div></div>
+  <div id="shotsPanel" class="section" style="display:none"><div id="captureList" class="capture-list"></div><div id="emptyShots" class="empty">Vos captures apparaîtront ici après un essayage.</div></div>
+</section>
+
+<nav class="bottom-nav">
+  <button class="nav-btn" data-page="catalogPage"><div class="nav-icon">◇</div>Bijoux</button>
+  <button class="nav-btn active" data-page="cameraPage"><div class="nav-icon">◎</div>Essayer</button>
+  <button class="nav-btn" data-page="libraryPage"><div class="nav-icon">♡</div>Favoris & captures</button>
+</nav>
+<div class="quick-picker" id="quickPicker">
+  <div class="quick-card">
+    <div class="quick-head"><div><div class="eyebrow">Sélection rapide</div><h2>Choisir un bijou</h2></div><button id="closeQuickPicker" aria-label="Fermer">×</button></div>
+    <div id="quickGrid" class="quick-grid"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const data=[
+ {id:0,name:'Éclat',cat:'Pendantes',type:'drop',color:'#e7c47c'},
+ {id:1,name:'Luna',cat:'Créoles',type:'hoop',color:'#e2bd78'},
+ {id:2,name:'Perle',cat:'Puces',type:'pearl',color:'#f4eee1'},
+ {id:3,name:'Cœur',cat:'Fantaisie',type:'heart',color:'#e6c77d'},
+ {id:4,name:'Étoile',cat:'Pendantes',type:'star',color:'#e2bf7b'},
+ {id:5,name:'Auré',cat:'Pendantes',type:'gem',color:'#63a78b'},
+ {id:6,name:'Essentielle',cat:'Créoles',type:'mini',color:'#e5c17e'},
+ {id:7,name:'Papillon',cat:'Fantaisie',type:'butterfly',color:'#e9a8b7'}
+];
+let selected=data[0],cat='Tout',stream=null,favs=JSON.parse(localStorage.getItem('auria_favs')||'[]');
+let faceLandmarks=null,aiEnabled=false,faceMesh=null,faceLoop=false;
+let smoothL=null,smoothR=null,smoothScale=null,lastCapture=null;
+const $=id=>document.getElementById(id);
+const video=$('video'),canvas=$('overlay'),ctx=canvas.getContext('2d');
+
+function toast(t){$('toast').textContent=t;$('toast').style.display='block';clearTimeout(window.__toast);window.__toast=setTimeout(()=>$('toast').style.display='none',2200)}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+function svg(m){
+ let c=m.color,s='';
+ if(m.type==='drop')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 25C18 52 31 85 50 101C69 85 82 52 50 25Z" fill="${c}"/><path d="M50 40L42 64L50 78L58 64Z" fill="#fff1ce"/>`;
+ if(m.type==='hoop'||m.type==='mini')s=`<circle cx="50" cy="20" r="6" fill="${c}"/><ellipse cx="50" cy="63" rx="${m.type==='hoop'?28:17}" ry="${m.type==='hoop'?39:25}" fill="none" stroke="${c}" stroke-width="5"/>`;
+ if(m.type==='pearl')s=`<circle cx="50" cy="22" r="6" fill="${c}"/><circle cx="50" cy="63" r="29" fill="${c}" stroke="#fff" stroke-width="2"/><circle cx="40" cy="53" r="8" fill="#fff" opacity=".5"/>`;
+ if(m.type==='heart')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 95C-2 58 25 25 50 50C75 25 102 58 50 95Z" fill="${c}" stroke="#fff0c9" stroke-width="2"/>`;
+ if(m.type==='star')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 30L60 53L85 55L66 72L72 96L50 82L28 96L34 72L15 55L40 53Z" fill="${c}"/>`;
+ if(m.type==='gem')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><path d="M50 28C20 35 30 67 50 94C70 67 80 35 50 28Z" fill="#438f72" stroke="${c}" stroke-width="4"/><path d="M50 34V85" stroke="#c6f0d6" stroke-width="3"/>`;
+ if(m.type==='butterfly')s=`<circle cx="50" cy="18" r="6" fill="${c}"/><ellipse cx="35" cy="57" rx="16" ry="24" fill="${c}"/><ellipse cx="65" cy="57" rx="16" ry="24" fill="${c}"/><ellipse cx="39" cy="79" rx="10" ry="15" fill="${c}"/><ellipse cx="61" cy="79" rx="10" ry="15" fill="${c}"/>`;
+ return `<svg viewBox="0 0 100 120">${s}</svg>`;
+}
+
+function toggleFav(id,e){
+ if(e)e.stopPropagation();
+ favs=favs.includes(id)?favs.filter(x=>x!==id):[...favs,id];
+ localStorage.setItem('auria_favs',JSON.stringify(favs));render();toast(favs.includes(id)?'Ajouté aux favoris':'Retiré des favoris');
+}
+function render(){
+ const f=$('filters');f.innerHTML='';
+ ['Tout','Créoles','Pendantes','Puces','Fantaisie'].forEach(c=>{let b=document.createElement('button');b.className='chip'+(cat===c?' active':'');b.textContent=c;b.onclick=()=>{cat=c;render()};f.append(b)});
+ const list=data.filter(m=>cat==='Tout'||m.cat===cat),root=$('products');root.innerHTML='';
+ $('catalogCount').textContent=list.length+' modèles';
+ list.forEach(m=>{
+   let b=document.createElement('button');b.className='product'+(selected.id===m.id?' selected':'');
+   b.innerHTML=`<button class="product-heart" aria-label="Favori">${favs.includes(m.id)?'♥':'♡'}</button><div class="art">${svg(m)}</div><div class="meta"><strong>${m.name}</strong><small>${m.cat}</small></div>`;
+   b.onclick=()=>{selected=m;updateSelected();go('cameraPage');draw()};
+   b.querySelector('.product-heart').onclick=e=>toggleFav(m.id,e);
+   root.append(b);
+ });
+ renderFavorites();renderCaptures();updateSelected();renderQuickPicker();
+}
+function renderFavorites(){
+ const root=$('favProducts');root.innerHTML='';const fs=data.filter(m=>favs.includes(m.id));$('emptyFav').style.display=fs.length?'none':'block';
+ fs.forEach(m=>{let b=document.createElement('button');b.className='product';b.innerHTML=`<button class="product-heart">${favs.includes(m.id)?'♥':'♡'}</button><div class="art">${svg(m)}</div><div class="meta"><strong>${m.name}</strong><small>${m.cat}</small></div>`;b.onclick=()=>{selected=m;updateSelected();go('cameraPage');draw()};b.querySelector('.product-heart').onclick=e=>toggleFav(m.id,e);root.append(b)})
+}
+function renderCaptures(){
+ const root=$('captureList');root.innerHTML='';const shots=JSON.parse(localStorage.getItem('auria_captures')||'[]');$('emptyShots').style.display=shots.length?'none':'block';
+ shots.forEach((s,i)=>{let el=document.createElement('div');el.className='saved-shot';el.innerHTML=`<img src="${s.img}" alt="Capture ${s.name}"><div class="saved-shot-info"><strong>${s.name}</strong><small>Essayage virtuel · ${new Date(s.date).toLocaleDateString('fr-FR')}</small><div class="capture-mini-actions"><button class="btn alt small" data-use="${i}">Essayer</button><button class="btn alt small" data-save="${i}">Enregistrer</button></div><button class="btn alt small" data-delete="${i}">Supprimer</button></div>`;el.querySelector('[data-delete]').onclick=()=>{shots.splice(i,1);localStorage.setItem('auria_captures',JSON.stringify(shots));renderCaptures()};el.querySelector('[data-use]').onclick=()=>{const m=data.find(x=>x.name===s.name);if(m){selected=m;updateSelected();go('cameraPage');draw()}};el.querySelector('[data-save]').onclick=()=>{const a=document.createElement('a');a.href=s.img;a.download=`AURIA-${s.name}.jpg`;a.click()};root.append(el)})
+}
+function renderQuickPicker(){
+ const root=$('quickGrid');if(!root)return;root.innerHTML='';
+ data.forEach(m=>{const b=document.createElement('button');b.className='quick-item'+(selected.id===m.id?' active':'');b.innerHTML=`<div class="art">${svg(m)}</div><div class="meta"><strong>${m.name}</strong><small>${m.cat}</small></div>`;b.onclick=()=>{selected=m;updateSelected();render();$('quickPicker').classList.remove('show');draw();toast(m.name+' sélectionné')};root.append(b)});
+}
+function updateSelected(){$('selectedStatus').textContent=selected.name;$('captureName').textContent=selected.name;$('captureSub').textContent=`${selected.cat} · aperçu virtuel`;document.title='AURIA — '+selected.name}
+function go(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
+ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+ if(id==='libraryPage')renderFavorites();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>go(b.dataset.page));
+$('cameraCatalogBtn').onclick=()=>{$('quickPicker').classList.add('show');renderQuickPicker()};
+$('closeQuickPicker').onclick=()=>$('quickPicker').classList.remove('show');
+$('quickPicker').onclick=e=>{if(e.target===$('quickPicker'))$('quickPicker').classList.remove('show')};
+
+function getAnchors(lm){
+ if(!lm||lm.length<455)return null;
+ const leftSide=lm[234],rightSide=lm[454];
+ const faceW=distance(leftSide,rightSide),faceH=distance(lm[10],lm[152]);
+ if(!faceW||!faceH)return null;
+ const mirror=p=>({x:1-p.x,y:p.y}),ls=mirror(leftSide),rs=mirror(rightSide);
+ const center={x:(ls.x+rs.x)/2,y:(ls.y+rs.y)/2},outward=faceW*.005;
+ function earPoint(side){
+   const dx=side.x-center.x,dy=side.y-center.y,len=Math.hypot(dx,dy)||1,nx=dx/len,ny=dy/len;
+   return{x:clamp(side.x+nx*outward,.02,.98),y:clamp(side.y+ny*outward+faceH*.020,.02,.98)};
+ }
+ const viewerLeft=earPoint(rs),viewerRight=earPoint(ls),a=.28;
+ smoothL=smoothL?{x:smoothL.x*(1-a)+viewerLeft.x*a,y:smoothL.y*(1-a)+viewerLeft.y*a}:{...viewerLeft};
+ smoothR=smoothR?{x:smoothR.x*(1-a)+viewerRight.x*a,y:smoothR.y*(1-a)+viewerRight.y*a}:{...viewerRight};
+ smoothScale=smoothScale?smoothScale*(1-a)+faceW*a:faceW;
+ return{L:smoothL,R:smoothR,scale:smoothScale,debug:{leftSide,rightSide}};
+}
+function earringScale(a,w,h){return a.scale*Math.min(w,h)*.0042*(+$('size').value/100)}
+function drawE(c,x,y,scale){
+ c.save();c.translate(x,y);c.scale(scale,scale);let m=selected,g=m.color;c.lineWidth=3;c.strokeStyle=g;c.fillStyle=g;c.shadowColor='#000a';c.shadowBlur=5;
+ c.beginPath();c.arc(0,0,3,0,7);c.fill();
+ if(m.type==='drop'){c.beginPath();c.moveTo(0,4);c.bezierCurveTo(-15,18,-10,31,0,39);c.bezierCurveTo(10,31,15,18,0,4);c.fill();c.fillStyle='#fff1ce';c.beginPath();c.ellipse(-2,23,3,7,0,0,7);c.fill()}
+ else if(m.type==='hoop'||m.type==='mini'){c.beginPath();c.ellipse(0,18,m.type==='hoop'?14:9,m.type==='hoop'?20:12,0,0,7);c.stroke()}
+ else if(m.type==='pearl'){c.beginPath();c.arc(0,16,10,0,7);c.fillStyle='#f5eee2';c.fill();c.stroke()}
+ else if(m.type==='heart'){c.beginPath();c.moveTo(0,34);c.bezierCurveTo(-30,14,-11,-1,0,12);c.bezierCurveTo(11,-1,30,14,0,34);c.fill()}
+ else if(m.type==='star'){c.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,r=i%2?7:17;c.lineTo(Math.cos(a)*r,17+Math.sin(a)*r)}c.closePath();c.fill()}
+ else if(m.type==='gem'){c.beginPath();c.moveTo(0,4);c.bezierCurveTo(-20,9,-10,27,0,36);c.bezierCurveTo(10,27,20,9,0,4);c.fillStyle='#438f72';c.fill();c.stroke()}
+ else{c.beginPath();c.ellipse(-7,15,8,12,-.6,0,7);c.ellipse(7,15,8,12,.6,0,7);c.ellipse(-6,27,5,8,.6,0,7);c.ellipse(6,27,5,8,-.6,0,7);c.fill()}
+ c.restore();
+}
+function draw(){
+ const r=canvas.getBoundingClientRect(),w=canvas.width=Math.max(1,Math.round(r.width*devicePixelRatio)),h=canvas.height=Math.max(1,Math.round(r.height*devicePixelRatio));ctx.clearRect(0,0,w,h);if(!stream)return;
+ if(aiEnabled&&faceLandmarks){const a=getAnchors(faceLandmarks);if(a){const s=earringScale(a,w,h);drawE(ctx,a.R.x*w,a.R.y*h,s);drawE(ctx,a.L.x*w,a.L.y*h,s);return}}
+ if(!aiEnabled||!faceLandmarks){return;}
+}
+function setAIStatus(t){$('aiStatus').textContent=t;$('noticeStatus').textContent=t;$('aiPill').textContent=t.startsWith('✓')?'✦ IA active':'✦ IA prête'}
+async function initFaceMesh(){
+ if(faceMesh)return true;
+ if(typeof FaceMesh==='undefined'){setAIStatus('IA indisponible : Face Mesh n’est pas chargé. Ouvrez la page sur Internet (HTTPS).');return false}
+ try{
+   faceMesh=new FaceMesh({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+   faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+   faceMesh.onResults(res=>{faceLandmarks=(res.multiFaceLandmarks&&res.multiFaceLandmarks.length)?res.multiFaceLandmarks[0]:null;if(faceLandmarks){aiEnabled=true;setAIStatus('✓ Visage détecté — placement automatique')}else setAIStatus('Recherche du visage… placez votre visage dans le cadre');draw()});
+   if(!faceLoop){faceLoop=true;const loop=async()=>{if(!faceLoop)return;if(stream&&video.readyState>=2&&video.videoWidth>0){try{await faceMesh.send({image:video})}catch(e){setAIStatus('Erreur Face Mesh : '+(e.message||'modèle indisponible'))}}requestAnimationFrame(loop)};loop()}
+   return true;
+ }catch(e){faceMesh=null;setAIStatus('Impossible d’initialiser Face Mesh : '+(e.message||'erreur inconnue'));return false}
+}
+async function camera(){
+ try{
+   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;faceLoop=false;faceLandmarks=null;aiEnabled=false;video.srcObject=null;smoothL=smoothR=null;smoothScale=null;$('placeholder').classList.remove('hidden');$('livePill').style.display='none';$('camBtn').textContent='Activer la caméra ↗';$('capture').disabled=true;ctx.clearRect(0,0,canvas.width,canvas.height);setAIStatus('Caméra arrêtée.');return}
+   if(!navigator.mediaDevices?.getUserMedia)throw Error('Caméra indisponible : utilisez HTTPS ou localhost.');
+   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'},width:{ideal:1280},height:{ideal:720}},audio:false});
+   video.srcObject=stream;await video.play();$('placeholder').classList.add('hidden');$('livePill').style.display='inline-block';$('camBtn').textContent='Désactiver la caméra';$('capture').disabled=false;setAIStatus('Chargement de Face Mesh…');aiEnabled=true;const ok=await initFaceMesh();if(!ok)aiEnabled=false;draw();toast(ok?'Caméra + Face Mesh activés':'Caméra activée, IA indisponible')
+ }catch(e){toast(e.message||'Autorisation caméra refusée');setAIStatus('Impossible d’activer la caméra.')}
+}
+$('camBtn').onclick=camera;
+window.addEventListener('resize',draw);
+
+function captureCanvas(){
+ if(!stream)return null;
+ const out=document.createElement('canvas'),w=video.videoWidth,h=video.videoHeight;out.width=w;out.height=h;const c=out.getContext('2d');
+ c.save();c.translate(w,0);c.scale(-1,1);c.drawImage(video,0,0,w,h);c.restore();
+ if(aiEnabled&&faceLandmarks){const a=getAnchors(faceLandmarks);if(a){const s=earringScale(a,w,h);drawE(c,a.R.x*w,a.R.y*h,s);drawE(c,a.L.x*w,a.L.y*h,s)}}
+
+ // Carte premium intégrée directement à la photo
+ const pad=Math.round(w*.035), cardW=Math.min(w-pad*2,Math.round(w*.70)), cardH=Math.round(Math.max(100,w*.16)), x=pad,y=h-pad-cardH;
+ c.save();c.fillStyle='rgba(20,16,14,.88)';c.strokeStyle='rgba(255,255,255,.28)';c.lineWidth=1;
+ roundRect(c,x,y,cardW,cardH,Math.round(cardH*.18));c.fill();c.stroke();
+ c.fillStyle='#d9a99a';c.font=`700 ${Math.max(10,w*.014)}px system-ui`;c.letterSpacing='.18em';c.fillText('AURIA · ESSAYAGE VIRTUEL',x+pad*.8,y+pad*.9);
+ c.fillStyle='#f8f3ed';c.font=`${Math.max(22,w*.035)}px Georgia`;c.fillText(selected.name,x+pad*.8,y+pad*1.75);
+ c.fillStyle='#c7bdb7';c.font=`${Math.max(10,w*.014)}px system-ui`;c.fillText(selected.cat+' · Aperçu virtuel',x+pad*.8,y+pad*2.45);
+ c.restore();
+ return out;
+}
+function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+$('capture').onclick=()=>{
+ const out=captureCanvas();if(!out)return;
+ const img=out.toDataURL('image/jpeg',.90);lastCapture=img;$('shot').src=img;$('resultCard').style.display='block';$('resultCard').scrollIntoView({behavior:'smooth'});
+ const shots=JSON.parse(localStorage.getItem('auria_captures')||'[]');shots.unshift({img,name:selected.name,date:new Date().toISOString()});localStorage.setItem('auria_captures',JSON.stringify(shots.slice(0,6)));renderCaptures();toast('Capture premium enregistrée');
+};
+$('saveCapture').onclick=()=>{if(!lastCapture)return;const a=document.createElement('a');a.href=lastCapture;a.download=`AURIA-${selected.name}.jpg`;a.click();toast('Capture enregistrée')};
+$('shareCapture').onclick=async()=>{if(!lastCapture)return;try{const blob=await (await fetch(lastCapture)).blob();const file=new File([blob],`AURIA-${selected.name}.jpg`,{type:'image/jpeg'});if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({title:'AURIA — Essayage virtuel',files:[file]})}else{const a=document.createElement('a');a.href=lastCapture;a.download=`AURIA-${selected.name}.jpg`;a.click();toast('Partage indisponible — capture enregistrée')}}catch(e){if(e.name!=='AbortError')toast('Partage annulé')}}
+$('headerFav').onclick=()=>go('libraryPage');
+
+document.querySelectorAll('.library-tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.library-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');const shots=b.dataset.library==='shots';$('favPanel').style.display=shots?'none':'block';$('shotsPanel').style.display=shots?'block':'none';if(shots)renderCaptures()});
+
+updateSelected();render();
+</script>
+</body>
+</html>
